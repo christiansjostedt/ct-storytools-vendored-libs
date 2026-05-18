@@ -1,0 +1,98 @@
+name: Build OCIO tarballs
+
+# Builds OpenColorIO 2.5.1 from source on Linux / macOS / Windows and
+# uploads the resulting tarballs as artifacts. Push a `ocio-vX.Y.Z-rN`
+# tag to also publish them as release assets that the StoryTools
+# installer fetches at `python install_storytools.py --ocio-only`.
+
+on:
+  push:
+    tags:
+      - "ocio-v*"
+  workflow_dispatch:
+    # Manual runs (e.g. testing changes to the build scripts) produce
+    # artifacts but skip the release-publish step.
+
+env:
+  OCIO_VERSION: "2.5.1"
+  OCIO_REPO: "AcademySoftwareFoundation/OpenColorIO"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x86_64
+            os: ubuntu-22.04
+            script: scripts/build_linux.sh
+          - name: macos-universal
+            os: macos-13   # x86_64 runner; we cross-build to arm64 via CMAKE_OSX_ARCHITECTURES
+            script: scripts/build_macos.sh
+          - name: windows-x86_64
+            os: windows-2022
+            script: scripts/build_windows.ps1
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build OCIO (${{ matrix.name }})
+        shell: bash
+        if: matrix.os != 'windows-2022'
+        run: |
+          chmod +x ${{ matrix.script }}
+          ./${{ matrix.script }}
+        env:
+          OCIO_VERSION: ${{ env.OCIO_VERSION }}
+          OCIO_REPO: ${{ env.OCIO_REPO }}
+          PLATFORM_TAG: ${{ matrix.name }}
+          RELEASE_TAG: ${{ github.ref_name }}
+
+      - name: Build OCIO (Windows)
+        if: matrix.os == 'windows-2022'
+        shell: pwsh
+        run: |
+          ./${{ matrix.script }}
+        env:
+          OCIO_VERSION: ${{ env.OCIO_VERSION }}
+          OCIO_REPO: ${{ env.OCIO_REPO }}
+          PLATFORM_TAG: ${{ matrix.name }}
+          RELEASE_TAG: ${{ github.ref_name }}
+
+      - name: Upload tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ocio-${{ matrix.name }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  publish:
+    name: Publish release assets
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/ocio-v')
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Flatten artifact dirs
+        run: |
+          mkdir -p release
+          find dist -name "*.tar.gz" -exec cp {} release/ \;
+          ls -la release/
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.tar.gz
+          generate_release_notes: true
+          fail_on_unmatched_files: true

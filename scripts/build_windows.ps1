@@ -71,7 +71,7 @@ $BuiltAt = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ" -AsUTC)
 }
 "@ | Out-File -Encoding ASCII -FilePath "$Payload\MANIFEST.json"
 
-$Out = Join-Path $Dist "ocio-$ReleaseTag-$PlatformTag.tar.gz"
+$Out = Join-Path $Dist "$ReleaseTag-$PlatformTag.tar.gz"
 Write-Host "==> Packaging $Out"
 # Windows 10+ ships bsdtar as `tar` — emits the same .tar.gz format the
 # installer's tarfile.open(...) reads on the other end.

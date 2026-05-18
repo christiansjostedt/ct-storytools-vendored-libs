@@ -81,7 +81,7 @@ cat > "$PAYLOAD/MANIFEST.json" <<JSON
 }
 JSON
 
-OUT="$DIST/ocio-$RELEASE_TAG-$PLATFORM_TAG.tar.gz"
+OUT="$DIST/$RELEASE_TAG-$PLATFORM_TAG.tar.gz"
 echo "==> Packaging $OUT"
 tar -C "$PAYLOAD" -czf "$OUT" .
 

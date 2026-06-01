@@ -27,7 +27,14 @@ jobs:
             os: ubuntu-22.04
             script: scripts/build_linux.sh
           - name: macos-universal
-            os: macos-13   # x86_64 runner; we cross-build to arm64 via CMAKE_OSX_ARCHITECTURES
+            # macos-14 = Apple Silicon (arm64). The build script uses
+            # CMAKE_OSX_ARCHITECTURES to emit a universal x86_64 +
+            # arm64 .dylib that runs on Intel + Apple Silicon Macs.
+            # Was macos-13 (x86_64) but those runners had a 24-hour
+            # queue depth that timed out before getting scheduled
+            # (`ocio-v2.5.1-r1`, June 1: "exceeded max execution
+            # time waiting for a runner for 24h0m0s").
+            os: macos-14
             script: scripts/build_macos.sh
           - name: windows-x86_64
             os: windows-2022

@@ -15,7 +15,7 @@ package manager required on the user's machine.
 
 | Library | Version | Used by | Release tag |
 |---|---|---|---|
-| OpenColorIO | 2.5.1 | StoryTools render daemon (via `ocio-sys` cxx::bridge) | `ocio-v2.5.1-r1` |
+| OpenColorIO | 2.5.1 | StoryTools render daemon (via `ocio-sys` cxx::bridge) | `ocio-v2.5.1-r3` |
 
 ## How it works
 
@@ -25,7 +25,7 @@ package manager required on the user's machine.
    (`-DOCIO_INSTALL_EXT_PACKAGES=ALL`).
 2. Each runner packages a per-platform tarball with the layout below
    and uploads it as a workflow artifact.
-3. Push a tag like `ocio-v2.5.1-r1` to also publish the artifacts as
+3. Push a tag like `ocio-v2.5.1-r3` to also publish the artifacts as
    release assets. The StoryTools installer reads `OCIO_RELEASE_TAG`
    from `install_storytools.py` and downloads the matching asset
    (`ocio-<tag>-<platform>.tar.gz`).
@@ -54,7 +54,7 @@ bin/
 
 ```json
 {
-  "release_tag": "ocio-v2.5.1-r1",
+  "release_tag": "ocio-v2.5.1-r3",
   "ocio_version": "2.5.1",
   "platform": "linux-x86_64",
   "built_at": "2026-05-18T12:34:56Z",
@@ -78,7 +78,7 @@ bin/
 
 | Tarball | Runner | Compiler | Build script |
 |---|---|---|---|
-| `linux-x86_64` | `ubuntu-22.04` | gcc | `scripts/build_linux.sh` |
+| `linux-x86_64` | `ubuntu-22.04` host, `quay.io/pypa/manylinux_2_28_x86_64` container (glibc 2.28 — Rocky/RHEL 8+) | gcc-toolset | `scripts/build_linux.sh` |
 | `macos-universal` | `macos-13` | clang (x86_64 + arm64) | `scripts/build_macos.sh` |
 | `windows-x86_64` | `windows-2022` | MSVC 2022 | `scripts/build_windows.ps1` |
 
